@@ -40,10 +40,12 @@ notice_pid=
 start_fleet() {
   local out=/tmp/botmux-start.log
   if [ -n "$notice_pid" ]; then kill "$notice_pid" 2>/dev/null; wait "$notice_pid" 2>/dev/null; notice_pid=; fi
-  if botmux start >"$out" 2>&1; then
-    cat "$out"; return 0
-  fi
+  # botmux prints login links with the dashboard token in them; neither the logs
+  # nor the notice page are a place for it.
+  botmux start >"$out" 2>&1; local rc=$?
+  sed -i -E 's/([?&]t=)[A-Za-z0-9._~-]+/\1<DASHBOARD_TOKEN>/g' "$out"
   cat "$out"
+  [ "$rc" = 0 ] && return 0
   echo "[railway] botmux start failed; serving a notice page on :${PORT} and retrying in 60 s"
   node /opt/botmux-railway/notice.mjs "$out" & notice_pid=$!
   return 1
@@ -60,7 +62,7 @@ follow_logs() {
   [ "$now" = "$logs" ] && return
   [ -n "$tail_pid" ] && kill "$tail_pid" 2>/dev/null
   logs=$now
-  [ -n "$logs" ] && { tail -n 0 -F $logs & tail_pid=$!; }
+  [ -n "$logs" ] && { tail -q -n 0 -F $logs & tail_pid=$!; }
 }
 
 # `botmux watchdog` restarts anything that died and does nothing after an
