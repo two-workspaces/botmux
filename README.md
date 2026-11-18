@@ -52,14 +52,14 @@ Logins done in a shell are saved on the volume. They survive redeploys.
 
 ### Implementation Details
 
-- **Not tested with a real Feishu or Lark account.** We have none, so no real chat went through this template. With made-up app credentials, botmux kept running and kept retrying the connection, and the dashboard stayed up. A first real chat may need tweaks to the app's permissions or events.
+- **Not tested with a real Feishu or Lark account.** We have none, so no real chat went through this template. With made-up Feishu and Lark app credentials, the bots kept retrying the connection, and botmux and the dashboard stayed up. A first real chat may need tweaks to the app's permissions or events.
 - **What was tested on Railway:**
   - booting with no credentials;
   - booting with made-up Feishu and Lark credentials;
   - the dashboard token: without it, the API answers 401;
   - bots and settings surviving a redeploy and a restart;
   - Claude Code, Codex and OpenCode starting and reaching their APIs.
-- **Memory:** TESTED_MEMORY
+- **Memory:** idle with one bot, botmux used about 180 MB in our test (about 250 MB with two bots), so it boots on a 0.5 GB plan. Each running agent session adds a CLI process, usually a few hundred MB, so give it 1 GB or more for real work.
 - **Your data** lives on the volume at `/data`, which is also the home directory:
   - `~/.botmux`: bots, sessions, schedules, logs and the dashboard token;
   - `~/.claude`, `~/.codex` and `~/.local/share/opencode`: CLI logins;
@@ -75,7 +75,7 @@ Logins done in a shell are saved on the volume. They survive redeploys.
   - Terminal and dashboard links in cards use your Railway domain (`RAILWAY_PUBLIC_DOMAIN`, or `PUBLIC_URL` for a custom domain).
   - Each session's browser terminal is served at `/s/SESSION` on the same domain, behind the same token.
 - **Updates:** botmux's self-update is off. The template pins botmux and each CLI, and new versions come as template updates.
-- **Shell access:** `railway ssh` opens a shell in `/data`. There, `botmux status`, `botmux logs` and `botmux dashboard` (which prints the login link) work as usual.
+- **Shell access:** in a `railway ssh` shell the home directory is the volume, so `botmux status`, `botmux logs`, `botmux dashboard` (which prints the login link), `claude`, `codex login` and `opencode auth login` work on the same files as the service.
 
 ## 中文说明
 
