@@ -29,9 +29,11 @@ cd /data 2>/dev/null || true
 SH
 
 # Railway counts the kernel's cache of files this container has read as the
-# service's memory, and with no memory pressure it is never freed. Drop it for
-# the volume and /tmp every 15 minutes.
-( while sleep 900; do nice -n 19 drop-file-cache /data /tmp || true; done ) &
+# service's memory, and with no memory pressure it is never freed: the CLIs,
+# fonts and botmux binary read at startup alone show as most of a gigabyte.
+# Drop it two minutes after boot, then every 15 minutes.
+trim() { nice -n 19 drop-file-cache /data /tmp /usr/lib/node_modules /usr/local/lib/node_modules /usr/local/bin /usr/share/fonts || true; }
+( sleep 120; trim; while sleep 900; do trim; done ) &
 
 stop() { botmux stop >/dev/null 2>&1; exit 0; }
 trap stop TERM INT
