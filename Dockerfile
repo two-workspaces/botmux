@@ -41,8 +41,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && botmux --version && claude --version && codex --version && opencode --version \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# `railway ssh` takes HOME from /etc/passwd: point root's home at the volume too.
-RUN sed -i 's#^root:x:0:0:root:/root:#root:x:0:0:root:/data:#' /etc/passwd
+# `railway ssh` shells get HOME=/root: make that the volume too, so `botmux status`,
+# `claude` and `codex login` there see the same files as the service.
+RUN rm -rf /root && ln -s /data /root
 
 COPY configure.mjs notice.mjs /opt/botmux-railway/
 COPY drop-file-cache /usr/local/bin/drop-file-cache
